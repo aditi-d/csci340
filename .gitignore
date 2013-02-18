@@ -1,0 +1,30 @@
+#Object files
+*.o
+*.ho
+#Libraries
+*.lib
+*.a
+*.ha
+
+#Executables 
+*.exe
+*.out
+*.app
+kernel
+
+#HTML Files
+*.html
+
+*.mk
+
+.cvsignore
+vers.c
+version
+#Executable direcories
+bin/
+sbin/
+
+#Testbin directory 
+testbin/
+uw-testbin/
+my-testbin/
