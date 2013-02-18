@@ -74,7 +74,7 @@ mips_syscall(struct trapframe *tf)
 
 	    /* Add stuff here */
 	    /*call for assignment 0*/
-	    case SYS_helloworld:
+	    case SYS__helloworld:
 		err = sys_helloworld(tf->tf_a0);
 		break;
  
