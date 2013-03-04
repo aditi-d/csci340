@@ -11,7 +11,7 @@
 int
 main(int argc, char *argv[])
 {
-	//int num;
+	int retval;
 	/*const char *tmp;
 	int i;
 
@@ -24,7 +24,9 @@ main(int argc, char *argv[])
 		}
 		printf("argv[%d]: %s\n", i, tmp);
 	}*/
-	_helloworld();
+	//retval=_helloworld();
+	//printf("%d\n",retval);
+	//retval=_printint(88);
 	reboot(0);
 	return 0;
 }

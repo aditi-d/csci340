@@ -7,3 +7,9 @@ int sys_helloworld(int code){
 	retval=kprintf("HELLO WORLD\n");
 	return retval;
 }
+
+int sys_printint(int code,int num){
+	int retval;
+	retval=kprintf("%d",num);
+	return retval;
+}

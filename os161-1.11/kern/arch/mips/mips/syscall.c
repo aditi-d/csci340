@@ -73,11 +73,15 @@ mips_syscall(struct trapframe *tf)
 		break;
 
 	    /* Add stuff here */
-	    /*call for assignment 0*/
+	    /*calls for assignment 0*/
 	    case SYS__helloworld:
-		err = sys_helloworld(tf->tf_a0);
+		//err = sys_helloworld(tf->tf_a0);
 		break;
  
+	    case SYS__printint:
+		//err=sys_printint(tf->tf_a0,tf->tf_a1);
+		break;
+
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
 		err = ENOSYS;

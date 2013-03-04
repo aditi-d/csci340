@@ -79,6 +79,7 @@ boot(void)
 	kprintf_bootstrap();
 //	kprintf("\n printing helloworld...");
 //	_helloworld(0);
+//	_printint(88);
 	/* Default bootfs - but ignore failure, in case emu0 doesn't exist */
 	vfs_setbootfs("emu0");
 

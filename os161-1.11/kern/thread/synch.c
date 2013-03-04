@@ -135,15 +135,19 @@ lock_acquire(struct lock *lock)
 {
 	// Write this
 
-	(void)lock;  // suppress warning until code gets written
+	//(void)lock;  
+	// suppress warning until code gets written
+	while(test_and_set(&lock->lockvalue)){}	
 }
 
 void
 lock_release(struct lock *lock)
 {
 	// Write this
-
-	(void)lock;  // suppress warning until code gets written
+	
+	//(void)lock;  
+	// suppress warning until code gets written
+	lock->lockvalue=0;
 }
 
 int
@@ -153,9 +157,20 @@ lock_do_i_hold(struct lock *lock)
 
 	(void)lock;  // suppress warning until code gets written
 
-	return 1;    // dummy until code gets written
+	 return 1;   
+	// dummy until code gets written
+	
 }
 
+//Return the current value of the lock. If the current value is false
+//set it to true so that the lock is aquired.
+//If the current value is true, it is being used and hence keep waiting till it is released.
+int
+test_and_set(int *value){
+	int temp = *value;
+	*value=1;
+	return temp;
+}
 ////////////////////////////////////////////////////////////
 //
 // CV
