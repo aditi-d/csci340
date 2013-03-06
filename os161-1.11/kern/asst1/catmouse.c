@@ -66,6 +66,12 @@ int NumBowls;  // number of food bowls
 int NumCats;   // number of cats
 int NumMice;   // number of mice
 int NumLoops;  // number of times each cat and mouse should eat
+struct semaphore *CatCount;
+struct semaphore *MouseCount;
+struct semaphore *Bowl;
+int volatile EatingCatCount=0;
+int volatile EatingMouseCount=0;
+int volatile BowlNo=0;
 
 /*
  * Once the main driver function (catmouse()) has created the cat and mouse
@@ -115,12 +121,12 @@ cat_simulation(void * unusedpointer,
   /* your simulated cat must iterate NumLoops times,
    *  sleeping (by calling cat_sleep() and eating
    *  (by calling cat_eat()) on each iteration */
-  for(i=0;i<NumLoops;i++) {
-
+	for(i=0;i<NumLoops;i++) {
+	//while(1){
     /* do not synchronize calls to cat_sleep().
        Any number of cats (and mice) should be able
        sleep at the same time. */
-    cat_sleep();
+	//cat_sleep();	
 
     /* for now, this cat chooses a random bowl from
      * which to eat, and it is not synchronized with
@@ -132,11 +138,45 @@ cat_simulation(void * unusedpointer,
      * the rules when it eats */
 
     /* legal bowl numbers range from 1 to NumBowls */
-    bowl = ((unsigned int)random() % NumBowls) + 1;
-    cat_eat(bowl);
+       //bowl = ((unsigned int)random() % NumBowls) + 1;
+       //cat_eat(bowl);
+	
+	kprintf("\nInside cat simulation\n");
 
-  }
+	P(CatCount);
+		while(EatingMouseCount>0){
+			cat_sleep();
+		}
+		EatingCatCount++;
+		cat_eat(BowlNo++);
+		kprintf("Cat num::%d ate from dish num::%d",(int)catnumber,BowlNo);
+		EatingCatCount--;
+	V(CatCount);
 
+	//P(CatMouseCount);
+	/*kprintf("\nentering");
+	if(MouseCount==0){
+		CatCount++;
+	kprintf("\ncat count::%d mouse count::%d",CatCount,MouseCount);
+	}
+	kprintf("\nleaving");*/
+	//V(CatMouseCount);
+	
+	kprintf("\nhere cat");
+
+	//P(CatMouseCount);
+	/*if(MouseCount==0){
+		P(Dish);
+		DishNo++;
+		cat_eat(DishNo);
+		kprintf("Cat num::%d ate from dish num::%d",(int)catnumber,DishNo);
+		CatCount--;
+		DishNo--;
+		V(Dish);
+	}*/
+
+	//V(CatMouseCount);
+   }
   /* indicate that this cat simulation is finished */
   V(CatMouseWait); 
 }
@@ -165,8 +205,8 @@ void
 mouse_simulation(void * unusedpointer,
           unsigned long mousenumber)
 {
-  int i;
-  unsigned int bowl;
+  //int i;
+  //unsigned int bowl;
 
   /* Avoid unused variable warnings. */
   (void) unusedpointer;
@@ -176,12 +216,13 @@ mouse_simulation(void * unusedpointer,
   /* your simulated mouse must iterate NumLoops times,
    *  sleeping (by calling mouse_sleep()) and eating
    *  (by calling mouse_eat()) on each iteration */
-  for(i=0;i<NumLoops;i++) {
-
+//  for(i=0;i<NumLoops;i++) {
+	while(1){
     /* do not synchronize calls to mouse_sleep().
        Any number of mice (and cats) should be able
        sleep at the same time. */
-    mouse_sleep();
+	mouse_sleep();	
+    
 
     /* for now, this mouse chooses a random bowl from
      * which to eat, and it is not synchronized with
@@ -193,9 +234,44 @@ mouse_simulation(void * unusedpointer,
      * the rules when it eats */
 
     /* legal bowl numbers range from 1 to NumBowls */
-    bowl = ((unsigned int)random() % NumBowls) + 1;
-    mouse_eat(bowl);
+   // bowl = ((unsigned int)random() % NumBowls) + 1;
+   // mouse_eat(bowl);
+	
+	kprintf("\nInside mouse simulation\n");
 
+	P(MouseCount);
+		while(EatingCatCount>0){
+			mouse_sleep();
+		}
+		EatingMouseCount++;
+		mouse_eat(BowlNo++);
+		kprintf("Mouse num::%d ate from dish num::%d",(int)mousenumber,BowlNo);
+		EatingMouseCount--;
+	V(MouseCount);
+
+	/*P(CatMouseCount);
+	kprintf("\nEntering\n");
+	if(CatCount==0){
+		MouseCount++;
+	kprintf("\nmouse count::%d cat count::%d\n",MouseCount,CatCount);
+	}
+	kprintf("\nLeaving\n");
+	V(CatMouseCount);
+	*/
+	kprintf("\nhere mouse");
+
+	//P(CatMouseCount);
+	/*if(CatCount==0){
+		P(Dish);
+		DishNo++;
+		mouse_eat(DishNo);
+		kprintf("Mouse num::%d ate from dish num::%d",(int)mousenumber,DishNo);
+		MouseCount--;
+		DishNo--;
+		V(Dish);
+	}*/
+	
+	//V(CatMouseCount);	
   }
 
   /* indicate that this mouse is finished */
@@ -279,6 +355,14 @@ catmouse(int nargs,
   if (initialize_bowls(NumBowls)) {
     panic("catmouse: error initializing bowls.\n");
   }
+
+  //semaphore for tracking if either cat or mouse is 0
+  MouseCount=sem_create("MouseCount",2);
+  CatCount=sem_create("CatCount",2);
+
+
+  //semaphore for tracking if 2 cats or 2 mice are at a dish
+  BowlNo=sem_create("BowlNo",2);
 
   /*
    * Start NumCats cat_simulation() threads.

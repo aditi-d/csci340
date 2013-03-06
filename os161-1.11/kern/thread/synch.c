@@ -137,7 +137,7 @@ lock_acquire(struct lock *lock)
 
 	//(void)lock;  
 	// suppress warning until code gets written
-	while(test_and_set(&lock->lockvalue)){}	
+	while(&lock->lockvalue){}	
 }
 
 void
