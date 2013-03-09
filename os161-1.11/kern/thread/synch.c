@@ -115,14 +115,23 @@ lock_create(const char *name)
 	}
 	
 	// add stuff here as needed
-	
+	lock->lockvalue=0;
 	return lock;
 }
 
 void
 lock_destroy(struct lock *lock)
 {
-	assert(lock != NULL);
+	int spl;
+    assert(lock != NULL);
+    
+    //disable all interrupts
+    splhigh();
+    
+    //check if no threads are waiting on this lock
+    assert(thread_hassleepers(lock)==0)
+    
+    splx(spl);
 
 	// add stuff here as needed
 	
@@ -133,8 +142,22 @@ lock_destroy(struct lock *lock)
 void
 lock_acquire(struct lock *lock)
 {
-	// Write this
+	
+    // Write this
+    int spl;
+    assert(lock!=NULL);
 
+    splhigh();
+    if(lock->lockvalue==0){
+        lock->lockvalue=1;
+        lock->lockcurthread=curthread;
+    }
+    else{
+        while(lock->lockvalue==1){
+            thread_sleep(lock);
+        }
+    }
+    splx(spl);
 	//(void)lock;  
 	// suppress warning until code gets written
 	//while(&lock->lockvalue){}	
@@ -147,7 +170,12 @@ lock_release(struct lock *lock)
 	
 	//(void)lock;  
 	// suppress warning until code gets written
-	lock->lockvalue=0;
+    int spl;
+    assert(lock!=NULL);
+    spl=splhigh();
+    lock->lockvalue=0;
+    thread_wakeup(lock);
+    splx(spl);
 }
 
 int
@@ -155,9 +183,10 @@ lock_do_i_hold(struct lock *lock)
 {
 	// Write this
 
-	(void)lock;  // suppress warning until code gets written
-
-	 return 1;   
+	//(void)lock;  // suppress warning until code gets written
+    if(lock->lockcurthread==curthread)
+	    return 1; 
+      return 0;
 	// dummy until code gets written
 	
 }
@@ -165,12 +194,12 @@ lock_do_i_hold(struct lock *lock)
 //Return the current value of the lock. If the current value is false
 //set it to true so that the lock is aquired.
 //If the current value is true, it is being used and hence keep waiting till it is released.
-int
+/*int
 test_and_set(int *value){
 	int temp = *value;
 	*value=1;
 	return temp;
-}
+}*/
 ////////////////////////////////////////////////////////////
 //
 // CV
