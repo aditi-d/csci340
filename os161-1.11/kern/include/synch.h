@@ -54,8 +54,8 @@ struct lock {
 	char *name;
 	// add what you need here
 	// (don't forget to mark things volatile as needed)
-	volatile int lockvalue;
-    struct thread *lockcurthread;
+	//volatile int lockvalue;
+    	volatile struct thread *lockcurthread;
 };
 
 struct lock *lock_create(const char *name);
@@ -63,7 +63,6 @@ void         lock_acquire(struct lock *);
 void         lock_release(struct lock *);
 int          lock_do_i_hold(struct lock *);
 void         lock_destroy(struct lock *);
-//int 	      test_and_set(int *);
 
 /*
  * Condition variable.

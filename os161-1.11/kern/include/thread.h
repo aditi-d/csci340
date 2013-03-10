@@ -132,5 +132,6 @@ void mi_threadstart(void *data1, unsigned long data2,
 /* Machine dependent context switch. */
 void md_switch(struct pcb *old, struct pcb *nu);
 
+void thread_wakeup_one(const void *addr);
 
 #endif /* _THREAD_H_ */

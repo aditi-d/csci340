@@ -107,7 +107,6 @@ lock_create(const char *name)
 	if (lock == NULL) {
 		return NULL;
 	}
-
 	lock->name = kstrdup(name);
 	if (lock->name == NULL) {
 		kfree(lock);
@@ -115,7 +114,8 @@ lock_create(const char *name)
 	}
 	
 	// add stuff here as needed
-	lock->lockvalue=0;
+	lock->lockcurthread=NULL;
+
 	return lock;
 }
 
@@ -126,17 +126,18 @@ lock_destroy(struct lock *lock)
     assert(lock != NULL);
     
     //disable all interrupts
-    splhigh();
+    spl=splhigh();
     
     //check if no threads are waiting on this lock
-    assert(thread_hassleepers(lock)==0)
-    
+    //assert(thread_hassleepers(lock)==0)
+	assert(lock->lockcurthread!=NULL);  
     splx(spl);
 
 	// add stuff here as needed
-	
 	kfree(lock->name);
+	//kfree(lock->lockcurthread);   
 	kfree(lock);
+	lock=NULL;
 }
 
 void
@@ -146,17 +147,13 @@ lock_acquire(struct lock *lock)
     // Write this
     int spl;
     assert(lock!=NULL);
-
-    splhigh();
-    if(lock->lockvalue==0){
-        lock->lockvalue=1;
-        lock->lockcurthread=curthread;
-    }
-    else{
-        while(lock->lockvalue==1){
+    //assert(in_interrupt!=NULL);
+    spl=splhigh();
+    while(lock->lockcurthread!=NULL){
             thread_sleep(lock);
         }
-    }
+    assert(lock->lockcurthread!=curthread);
+    lock->lockcurthread=curthread;
     splx(spl);
 	//(void)lock;  
 	// suppress warning until code gets written
@@ -173,7 +170,8 @@ lock_release(struct lock *lock)
     int spl;
     assert(lock!=NULL);
     spl=splhigh();
-    lock->lockvalue=0;
+    assert(lock->lockcurthread==curthread);
+    lock->lockcurthread=NULL;
     thread_wakeup(lock);
     splx(spl);
 }
@@ -183,12 +181,17 @@ lock_do_i_hold(struct lock *lock)
 {
 	// Write this
 
-	//(void)lock;  // suppress warning until code gets written
-    if(lock->lockcurthread==curthread)
-	    return 1; 
-      return 0;
+	//(void)lock;  
+	// suppress warning until code gets written
+	int retval=0;
+	//spl=splhigh();
+    	if(lock->lockcurthread==curthread)
+		    retval=1; 
+      	else 
+		retval=0;
+	//splx(spl);
+	return retval;
 	// dummy until code gets written
-	
 }
 
 //Return the current value of the lock. If the current value is false
@@ -241,22 +244,44 @@ void
 cv_wait(struct cv *cv, struct lock *lock)
 {
 	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+	//(void)cv;    
+	// suppress warning until code gets written
+	//(void)lock;  
+	// suppress warning until code gets written
+
+	assert(in_interrupt==0);	
+	int spl;
+	spl=splhigh();
+	lock_release(lock);
+	thread_sleep(cv);
+	lock_acquire(lock);
+	splx(spl);
 }
 
 void
 cv_signal(struct cv *cv, struct lock *lock)
 {
 	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+	//(void)cv;    
+	// suppress warning until code gets written
+	//(void)lock;  
+	// suppress warning until code gets written
+	int spl;
+	spl=splhigh();
+	thread_wakeup_one(cv);
+	splx(spl);
 }
 
 void
 cv_broadcast(struct cv *cv, struct lock *lock)
 {
 	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+	//(void)cv;   
+	// suppress warning until code gets written
+	//(void)lock; 
+	// suppress warning until code gets written
+	int spl;
+	spl=splhigh();
+	thread_wakeup(cv);
+	splx(spl);
 }
