@@ -153,6 +153,7 @@ lock_acquire(struct lock *lock)
             thread_sleep(lock);
         }
     assert(lock->lockcurthread!=curthread);
+    kprintf("\nlock acquired:: %s",lock->name);
     lock->lockcurthread=curthread;
     splx(spl);
 	//(void)lock;  
@@ -171,6 +172,7 @@ lock_release(struct lock *lock)
     assert(lock!=NULL);
     spl=splhigh();
     assert(lock->lockcurthread==curthread);
+    kprintf("\nlock released:: %s",lock->name);
     lock->lockcurthread=NULL;
     thread_wakeup(lock);
     splx(spl);
