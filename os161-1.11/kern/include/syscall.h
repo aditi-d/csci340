@@ -8,5 +8,7 @@
 int sys_reboot(int code);
 int sys_helloworld(int code);
 int sys_printint(int code,int num);
+pid_t sys_getpid(int code);
+int printchar(char);
 
 #endif /* _SYSCALL_H_ */

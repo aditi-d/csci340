@@ -618,6 +618,8 @@ void
 mi_threadstart(void *data1, unsigned long data2, 
 	       void (*func)(void *, unsigned long))
 {
+	assignPid();
+	kprintf("\npid::%d",getPid());
 	/* If we have an address space, activate it */
 	if (curthread->t_vmspace) {
 		as_activate(curthread->t_vmspace);

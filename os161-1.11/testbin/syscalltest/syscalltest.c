@@ -14,6 +14,7 @@ main(int argc, char *argv[])
 	int retval;
 	/*const char *tmp;
 	int i;
+	pid_t pid;
 
 	printf("argc: %d\n", argc);
 
@@ -27,6 +28,9 @@ main(int argc, char *argv[])
 	//retval=_helloworld();
 	//printf("%d\n",retval);
 	//retval=_printint(88);
-	reboot(0);
+	//reboot(0);
+	pid=getpid();
+	printf("\n%d",pid);
+	printchar('c');
 	return 0;
 }

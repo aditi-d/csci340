@@ -37,3 +37,5 @@ options dumbvm			# Chewing gum and baling wire for asst 1&2.
 # UW options for assignment 1 + 2
 options A2    # use #if OPT_A2 to mark code for A2
 options A1    # includes your A1 code in A2 (you need this e.g., locks)
+file	   thread/pid.c
+file	   userprog/simple_syscall.c

@@ -129,8 +129,8 @@ lock_destroy(struct lock *lock)
     spl=splhigh();
     
     //check if no threads are waiting on this lock
-    //assert(thread_hassleepers(lock)==0)
-	assert(lock->lockcurthread!=NULL);  
+       assert(thread_hassleepers(lock)==0)
+	//assert(lock->lockcurthread==NULL);  
     splx(spl);
 
 	// add stuff here as needed

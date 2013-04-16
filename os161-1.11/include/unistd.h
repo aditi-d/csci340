@@ -103,8 +103,11 @@ int rmdir(const char *dirname);
 int _helloworld(void);
 int _printint(int value);
 
-/* Recommended. */
+/*assignment 2 system calls */
 int getpid(void);
+int printchar(char);
+
+/* Recommended. */
 int ioctl(int filehandle, int code, void *buf);
 int lseek(int filehandle, off_t pos, int code);
 int fsync(int filehandle);
