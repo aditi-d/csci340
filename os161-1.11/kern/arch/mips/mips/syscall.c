@@ -6,7 +6,10 @@
 #include <machine/trapframe.h>
 #include <kern/callno.h>
 #include <syscall.h>
-
+#include<thread.h>
+#include<curthread.h>
+#include<addrspace.h>
+#include<pid.h>
 
 /*
  * System call handler.
@@ -54,8 +57,6 @@ mips_syscall(struct trapframe *tf)
 
 	assert(curspl==0);
 
-	callno = tf->tf_v0;
-
 	/*
 	 * Initialize retval to 0. Many of the system calls don't
 	 * really return a value, just 0 for success and -1 on
@@ -66,12 +67,16 @@ mips_syscall(struct trapframe *tf)
 	 */
 
 	retval = 0;
-
+	callno=tf->tf_v0;
+    char ch;
 	switch (callno) {
 	    case SYS_reboot:
 		err = sys_reboot(tf->tf_a0);
 		break;
 
+        case SYS__exit:
+         thread_exit();
+        break;
 	    /* Add stuff here */
 	    /*calls for assignment 0*/
 	    case SYS__helloworld:
@@ -83,14 +88,26 @@ mips_syscall(struct trapframe *tf)
 		break;
 
 	    case SYS_getpid:
-		err=sys_getpid(tf->tf_a0);		
+		err=sys_getpid(&retval);		
 		break;
 
 	    case SYS__printchar:
-		err=sys_printchar(tf->tf_a0,tf->tf_a1);
+		err=sys_printchar(tf->tf_a0);
 		break;
+
+	    case SYS__readchar:
+		err=sys_readchar(&ch);
+		//kprintf("\nin syscall::%c",ch);
+		break;	
+
+	    case SYS_fork:
+		kprintf("\n testing fork::");
+		err=sys_fork(tf,curthread->t_vmspace);
+		break;
+
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
+		//kprintf("\ncallno::%d",tf->tf_v0);
 		err = ENOSYS;
 		break;
 	}
@@ -107,8 +124,14 @@ mips_syscall(struct trapframe *tf)
 	}
 	else {
 		/* Success. */
-		tf->tf_v0 = retval;
-		tf->tf_a3 = 0;      /* signal no error */
+		if(callno==SYS__readchar){
+			tf->tf_v0=ch;
+			tf->tf_a0=0;
+		}
+		else{
+			tf->tf_v0 = retval;
+			tf->tf_a3 = 0;      /* signal no error */
+		}
 	}
 	
 	/*
@@ -120,10 +143,38 @@ mips_syscall(struct trapframe *tf)
 
 	/* Make sure the syscall code didn't forget to lower spl */
 	assert(curspl==0);
+    kprintf("Exiting mips_syscall\n");
 }
 
-void
-md_forkentry(struct trapframe *tf)
+/*void
+md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
+{*/
+	/*
+	 * This function is provided as a reminder. You need to write
+	 * both it and the code that calls it.
+	 *
+	 * Thus, you can trash it and do things another way if you prefer.
+	 */
+	//(void)tf;
+/*	tf->tf_v0=0;
+	tf->tf_a3=0;
+	curthread->t_vmspace=(struct addrspace*)addrspace_copy;
+	if(curthread->t_vmspace==NULL){
+		as_activate(curthread->t_vmspace);
+	}
+
+	//copy modified trap frame from kernel heap to stack
+	struct trapframe tf_temp;//=kmalloc(sizeof(struct trapframe));
+	tf_temp.tf_v0=tf->tf_v0;
+	tf_temp.tf_a0=tf->tf_a0;
+	tf_temp.tf_a1=tf->tf_a1;
+	tf_temp.tf_a2=tf->tf_a2;
+	tf_temp.tf_a3=tf->tf_a3; 
+	tf->tf_epc+=4;
+	mips_usermode(&tf_temp);
+}*/
+
+void md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
 {
 	/*
 	 * This function is provided as a reminder. You need to write
@@ -131,6 +182,62 @@ md_forkentry(struct trapframe *tf)
 	 *
 	 * Thus, you can trash it and do things another way if you prefer.
 	 */
+	//(void)tf;
+	kprintf("\n md_forkentry");
+	tf->tf_v0=0;
+	tf->tf_a3=0;
+	curthread->t_vmspace=(struct addrspace*)addrspace_copy;
+	if(curthread->t_vmspace==NULL){
+		as_activate(curthread->t_vmspace);
+	}
 
-	(void)tf;
+	//copy modified trap frame from kernel heap to stack
+	struct trapframe tf_temp;//=kmalloc(sizeof(struct trapframe));
+	tf_temp.tf_v0=tf->tf_v0;
+	tf_temp.tf_a0=tf->tf_a0;
+	tf_temp.tf_a1=tf->tf_a1;
+	tf_temp.tf_a2=tf->tf_a2;
+	tf_temp.tf_a3=tf->tf_a3; 
+	tf->tf_epc+=4;
+	mips_usermode(&tf_temp);
 }
+
+int sys_fork(struct trapframe *tf,struct addrspace *parent_addr_space){
+	
+	kprintf("\n in sys_fork");
+	struct thread **child_thread=NULL;
+	struct thread *test;
+	struct addrspace *parent_addr_space_copy;
+
+	//create a new address space
+	parent_addr_space_copy=as_create();
+	if(parent_addr_space_copy==NULL)
+		return ENOMEM;
+
+	//make a copy of the parent's address space
+	as_copy(parent_addr_space,&parent_addr_space_copy);
+
+	//make a copy of the parent`s trapframe on kernel heap
+	struct trapframe *tf_temp=kmalloc(sizeof(struct trapframe));
+	if(tf_temp==NULL){
+		kfree(tf_temp);
+		return ENOMEM;
+	}
+
+	/*tf_temp->tf_v0=tf->tf_v0;
+	tf_temp->tf_a0=tf->tf_a0;
+	tf_temp->tf_a1=tf->tf_a1;
+	tf_temp->tf_a2=tf->tf_a2;
+	tf_temp->tf_a3=tf->tf_a3;*/
+
+	memcpy(tf_temp,tf,sizeof(struct trapframe));
+
+	//call thread_fork
+	//pass the trapframe and the address space of the parent to the child`s thread_fork
+	thread_fork("child thread",(struct trapframe *)tf_temp,(unsigned long)&parent_addr_space_copy,md_forkentry,child_thread);
+
+	//copy other required stuff and return with child`s pid
+	test=*(child_thread);
+	return test->pid;
+}
+

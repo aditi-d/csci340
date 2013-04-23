@@ -58,7 +58,7 @@ mips_trap(struct trapframe *tf)
 {
 	u_int32_t code, isutlb, iskern;
 	int savespl;
-
+	
 	/* The trap frame is supposed to be 37 registers long. */
 	assert(sizeof(struct trapframe)==(37*4));
 
@@ -100,9 +100,9 @@ mips_trap(struct trapframe *tf)
 	if (code == EX_SYS) {
 		/* Interrupts should have been on while in user mode. */
 		assert(curspl==0);
-
-		DEBUG(DB_SYSCALL, "syscall: #%d, args %x %x %x %x\n", 
-		      tf->tf_v0, tf->tf_a0, tf->tf_a1, tf->tf_a2, tf->tf_a3);
+		//kprintf("syscall: #%d, args %x %x %x %x\n", tf->tf_v0, tf->tf_a0, tf->tf_a1, tf->tf_a2, tf->tf_a3);
+		//DEBUG(DB_SYSCALL, "syscall: #%d, args %x %x %x %x\n", 
+		//      tf->tf_v0, tf->tf_a0, tf->tf_a1, tf->tf_a2, tf->tf_a3);
 
 		mips_syscall(tf);
 		goto done;

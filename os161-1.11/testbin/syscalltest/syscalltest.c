@@ -6,31 +6,17 @@
  * debugging the argument handling of execv().
  */
 
-#include <unistd.h>
+#include<stdio.h> 
+#include<unistd.h>
 
 int
 main(int argc, char *argv[])
 {
-	int retval;
-	/*const char *tmp;
-	int i;
-	pid_t pid;
-
-	printf("argc: %d\n", argc);
-
-	for (i=0; i<=argc; i++) {
-		tmp = argv[i];
-		if (tmp==NULL) {
-			tmp = "[NULL]";
-		}
-		printf("argv[%d]: %s\n", i, tmp);
-	}*/
-	//retval=_helloworld();
-	//printf("%d\n",retval);
-	//retval=_printint(88);
-	//reboot(0);
+	int pid;
+	char ch='c',ch2;
 	pid=getpid();
-	printf("\n%d",pid);
-	printchar('c');
+	pid=_printchar(ch);
+	ch2=_readchar();
+	pid=_printchar(ch2);
 	return 0;
 }

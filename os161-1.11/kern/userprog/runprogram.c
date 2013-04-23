@@ -14,6 +14,7 @@
 #include <vm.h>
 #include <vfs.h>
 #include <test.h>
+#include <pid.h>
 
 /*
  * Load program "progname" and start running it in usermode.
@@ -44,6 +45,7 @@ runprogram(char *progname)
 		return ENOMEM;
 	}
 
+	assignPid();
 	/* Activate it. */
 	as_activate(curthread->t_vmspace);
 

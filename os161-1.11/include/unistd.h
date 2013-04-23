@@ -105,7 +105,8 @@ int _printint(int value);
 
 /*assignment 2 system calls */
 int getpid(void);
-int printchar(char);
+int _printchar(char ch);
+char _readchar();
 
 /* Recommended. */
 int ioctl(int filehandle, int code, void *buf);

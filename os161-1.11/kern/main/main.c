@@ -44,6 +44,7 @@ static
 void
 boot(void)
 {
+	int retval;
 	/*
 	 * The order of these is important!
 	 * Don't go changing it without thinking about the consequences.
@@ -77,6 +78,9 @@ boot(void)
 	dev_bootstrap();
 	vm_bootstrap();
 	kprintf_bootstrap();
+	sys_getpid(&retval);
+	sys_printchar('c');
+	kprintf("\nretval::%d",retval);
 //	kprintf("\n printing helloworld...");
 //	_helloworld(0);
 //	_printint(88);
