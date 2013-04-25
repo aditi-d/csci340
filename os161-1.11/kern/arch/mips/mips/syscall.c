@@ -101,7 +101,7 @@ mips_syscall(struct trapframe *tf)
 		break;	
 
 	    case SYS_fork:
-		kprintf("\n testing fork::");
+		//kprintf("\n ::current addr space::%x",curthread->t_vmspace);
 		err=sys_fork(tf,curthread->t_vmspace);
 		break;
 
@@ -143,36 +143,8 @@ mips_syscall(struct trapframe *tf)
 
 	/* Make sure the syscall code didn't forget to lower spl */
 	assert(curspl==0);
-    kprintf("Exiting mips_syscall\n");
+    //kprintf("Exiting mips_syscall\n");
 }
-
-/*void
-md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
-{*/
-	/*
-	 * This function is provided as a reminder. You need to write
-	 * both it and the code that calls it.
-	 *
-	 * Thus, you can trash it and do things another way if you prefer.
-	 */
-	//(void)tf;
-/*	tf->tf_v0=0;
-	tf->tf_a3=0;
-	curthread->t_vmspace=(struct addrspace*)addrspace_copy;
-	if(curthread->t_vmspace==NULL){
-		as_activate(curthread->t_vmspace);
-	}
-
-	//copy modified trap frame from kernel heap to stack
-	struct trapframe tf_temp;//=kmalloc(sizeof(struct trapframe));
-	tf_temp.tf_v0=tf->tf_v0;
-	tf_temp.tf_a0=tf->tf_a0;
-	tf_temp.tf_a1=tf->tf_a1;
-	tf_temp.tf_a2=tf->tf_a2;
-	tf_temp.tf_a3=tf->tf_a3; 
-	tf->tf_epc+=4;
-	mips_usermode(&tf_temp);
-}*/
 
 void md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
 {
@@ -183,16 +155,16 @@ void md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
 	 * Thus, you can trash it and do things another way if you prefer.
 	 */
 	//(void)tf;
-	kprintf("\n md_forkentry");
+	//kprintf("\n md_forkentry");
 	tf->tf_v0=0;
 	tf->tf_a3=0;
 	curthread->t_vmspace=(struct addrspace*)addrspace_copy;
-	if(curthread->t_vmspace==NULL){
+	if(curthread->t_vmspace!=NULL){
 		as_activate(curthread->t_vmspace);
 	}
 
 	//copy modified trap frame from kernel heap to stack
-	struct trapframe tf_temp;//=kmalloc(sizeof(struct trapframe));
+	struct trapframe tf_temp=*tf;//=kmalloc(sizeof(struct trapframe));
 	tf_temp.tf_v0=tf->tf_v0;
 	tf_temp.tf_a0=tf->tf_a0;
 	tf_temp.tf_a1=tf->tf_a1;
@@ -204,40 +176,39 @@ void md_forkentry(struct trapframe *tf,unsigned long addrspace_copy)
 
 int sys_fork(struct trapframe *tf,struct addrspace *parent_addr_space){
 	
-	kprintf("\n in sys_fork");
-	struct thread **child_thread=NULL;
+	//kprintf("\n in sys_fork");
+	struct thread *child_thread=NULL;
 	struct thread *test;
 	struct addrspace *parent_addr_space_copy;
 
 	//create a new address space
+	//kprintf("\n in sys_fork:creating new addr space");
 	parent_addr_space_copy=as_create();
 	if(parent_addr_space_copy==NULL)
 		return ENOMEM;
 
 	//make a copy of the parent's address space
+	//kprintf("\n in sys_fork:copying to the addr space %x",parent_addr_space);
 	as_copy(parent_addr_space,&parent_addr_space_copy);
+	//kprintf("\n in sys_fork:copying to the addr space %x",*(parent_addr_space_copy));
 
 	//make a copy of the parent`s trapframe on kernel heap
+	//kprintf("\n in sys_fork:copying trap frame");
 	struct trapframe *tf_temp=kmalloc(sizeof(struct trapframe));
 	if(tf_temp==NULL){
 		kfree(tf_temp);
 		return ENOMEM;
 	}
-
-	/*tf_temp->tf_v0=tf->tf_v0;
-	tf_temp->tf_a0=tf->tf_a0;
-	tf_temp->tf_a1=tf->tf_a1;
-	tf_temp->tf_a2=tf->tf_a2;
-	tf_temp->tf_a3=tf->tf_a3;*/
-
 	memcpy(tf_temp,tf,sizeof(struct trapframe));
 
 	//call thread_fork
 	//pass the trapframe and the address space of the parent to the child`s thread_fork
-	thread_fork("child thread",(struct trapframe *)tf_temp,(unsigned long)&parent_addr_space_copy,md_forkentry,child_thread);
+	//kprintf("\n in sys_fork:forking");
+	thread_fork("child thread",tf_temp,(unsigned long)parent_addr_space_copy,md_forkentry,&child_thread);
 
+	//kprintf("\nchild_thread::%x",*(child_thread));
 	//copy other required stuff and return with child`s pid
-	test=*(child_thread);
-	return test->pid;
+	//test=(child_thread);
+	return child_thread->pid;
 }
 

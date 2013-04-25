@@ -3,13 +3,13 @@
 #include<thread.h>
 #define MAX_PROCS 65535
 
-typedef struct{
+struct pidNode{
 	pid_t pid;
 	struct thread *threadPtr;
-}pidNode;
-
-pidNode processIdList[MAX_PROCS];
+};
  
 pid_t getNextPid();
 void assignPid();
 pid_t getPid();
+void createPidTable();
+struct pidNode* getPidTable();

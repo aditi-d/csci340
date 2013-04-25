@@ -12,6 +12,7 @@
 #include <scheduler.h>
 #include <addrspace.h>
 #include <vnode.h>
+#include<pid.h>
 #include "opt-synchprobs.h"
 
 /* States a thread can be in. */
@@ -240,6 +241,8 @@ thread_bootstrap(void)
 
 	/* Number of threads starts at 1 */
 	numthreads = 1;
+	
+	createPidTable();
 
 	/* Done */
 	return me;
@@ -324,6 +327,8 @@ thread_fork(const char *name,
 		goto fail;
 	}
 
+	
+	assignPid();
 	/* Make the new thread runnable */
 	result = make_runnable(newguy);
 	if (result != 0) {
