@@ -13,4 +13,5 @@ int sys_getpid(int* retval);
 int sys_printchar(char ch);
 int sys_fork(struct trapframe*,struct addrspace*);
 int sys_readchar(char* ch);
+int sys_execv(const char *prog, char *const *args);
 #endif /* _SYSCALL_H_ */

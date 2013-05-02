@@ -104,6 +104,12 @@ mips_syscall(struct trapframe *tf)
 		//kprintf("\n ::current addr space::%x",curthread->t_vmspace);
 		err=sys_fork(tf,curthread->t_vmspace);
 		break;
+		
+	    case SYS_execv:
+		err=sys_execv(tf->tf_a0,tf->tf_a1);
+		//(const char *prog, char *const *args);
+		//prog points to a const string, const char pointer pointing to a const string
+		break;
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);

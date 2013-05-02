@@ -45,7 +45,7 @@ runprogram(char *progname)
 		return ENOMEM;
 	}
 
-	kprintf("\n in runprogram");
+	//kprintf("\n in runprogram");
 	assignPid();
 	/* Activate it. */
 	as_activate(curthread->t_vmspace);

@@ -116,11 +116,13 @@ copyin(const_userptr_t usersrc, void *dest, size_t len)
 	size_t stoplen;
 
 	result = copycheck(usersrc, len, &stoplen);
+	kprintf("\nres1:: %d",result);
 	if (result) {
 		return result;
 	}
 	if (stoplen != len) {
 		/* Single block, can't legally truncate it. */
+		kprintf("\nSingle block");
 		return EFAULT;
 	}
 
@@ -129,6 +131,7 @@ copyin(const_userptr_t usersrc, void *dest, size_t len)
 	result = setjmp(curthread->t_pcb.pcb_copyjmp);
 	if (result) {
 		curthread->t_pcb.pcb_badfaultfunc = NULL;
+		kprintf("\nres2:: %d",result);
 		return EFAULT;
 	}
 

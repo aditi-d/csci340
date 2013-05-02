@@ -18,5 +18,6 @@ main(int argc, char *argv[])
 	pid=_printchar(ch);
 	ch2=_readchar();
 	pid=_printchar(ch2);
+	execv("/testbin/add","");
 	return 0;
 }
